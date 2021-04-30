@@ -8,11 +8,6 @@ project "jelly_drift_ppo"
     architecture "x64"
     characterset "MBCS"
 
-    includedirs {
-		"dependencies/cppzmq-4.7.1",
-        "dependencies/cppzmq-4.7.1/libzmq-4.3.1/include"
-	}
-
     files {
         "src/**.hpp",
         "src/**.cpp",
