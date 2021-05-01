@@ -1,4 +1,4 @@
-from ctypes import *
+from ctypes import windll, byref, c_ulong
 from ctypes import wintypes as win
 
 PROCESS_ALL_ACCESS = 0x000F0000 | 0x00100000 | 0xFFF
