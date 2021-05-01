@@ -7,7 +7,7 @@ from gym.spaces import Dict, Discrete, Box
 from scipy.spatial.distance import cdist
 from multiprocessing import shared_memory
 
-class JDEnvironment(Env):
+class JDEnv(Env):
     def __init__(self, jd_path):
         ONE_SHAPE = (1,)
 
