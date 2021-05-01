@@ -15,7 +15,10 @@ namespace jelly_drift
 		float steering;
 		float throttle;
 		bool braking;
-		uint8_t pad75[0x3B];
+		uint8_t pad75[0x27];
+		float speed;
+		float dir;
+		unity::vector3 last_velocity;
 		bool grounded;
 		uint8_t padB1[0x23];
 		float steer_angle;
@@ -25,5 +28,11 @@ namespace jelly_drift
 	{
 		uint8_t pad0[0x28];
 		unity::object* current_car;
+	};
+
+	struct game_state
+	{
+		uint8_t pad0[0x30];
+		bool reset;
 	};
 };

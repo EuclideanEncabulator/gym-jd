@@ -6,9 +6,12 @@ from gym import Env
 from gym.spaces import Dict, Discrete, Box
 from scipy.spatial.distance import cdist
 from multiprocessing import shared_memory
+from gym_jd.interface.python.injector import inject
+from gym_jd.interface.python.ipc import Process
+from time import sleep
 
 class JDEnv(Env):
-    def __init__(self, jd_path):
+    def __init__(self, jd_path, dll_path):
         ONE_SHAPE = (1,)
 
         # TODO: Check whether mix of continuous and discrete actions works
@@ -26,12 +29,11 @@ class JDEnv(Env):
             "next_nodes": Box(low=-np.inf, high=np.inf, shape=(3, 3)) # get coord bounds
         })
 
-        # TODO: Start Jelly Drift
-        # TODO: Inject DLL
-
-        # TODO: Set up shared processes for Jelly Drift
-        shared_memory.SharedMemory(name="jd_rl", size=4, create=True)
-        shared_memory.SharedMemory(name="jd_game", size=101, create=True)
+        self.process = Process(jd_path)
+        sleep(5) # TODO: Move to c++, we can tell when unity has loaded.
+        inject(self.process.pid, dll_path)
+        self.nodes = np.load("config/nodes.npy")
+        self.changed = False
 
     def reset(self):
         # TODO: Start a new episode from the beginning
@@ -44,11 +46,18 @@ class JDEnv(Env):
         PSEUDO_MAX_SPEED = 300
         CONSIDER_NODES, PROXIMITY_RADIUS = 5, 5
 
-        # TODO: Perform action
+        self.changed = not self.changed
+        self.process.write({
+            "changed": self.changed,
+            "reset": False,
+            "steering": 0.0,
+            "throttle": 1.0,
+            "braking": False
+        })
 
         # TODO: Get reaal observation (state)
-        observation = {"position": 0, "next_nodes": 0, "speed": 0} # TODO: REMOVE
-        distances, index = cdist(observation["position"], self.nodes[:CONSIDER_NODES]), np.arrange(CONSIDER_NODES)
+        observation = self.process.read()
+        distances, index = cdist([observation["position"]], self.nodes[:CONSIDER_NODES]), np.arrange(CONSIDER_NODES)
         path_proximity = (distances * index ^ 2).reciprocal().sum()
 
         # Remove currently passed nodes

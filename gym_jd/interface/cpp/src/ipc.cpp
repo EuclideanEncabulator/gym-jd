@@ -34,12 +34,12 @@ bool ipc::initialize()
 	return true;
 }
 
-void ipc::write(message_game* msg)
+ipc::message_game* ipc::game()
 {
-	memcpy(game_buffer, msg, sizeof(message_game));
+	return reinterpret_cast<ipc::message_game*>(game_buffer);
 }
 
-ipc::message_python* ipc::read()
+ipc::message_python* ipc::python()
 {
 	return reinterpret_cast<ipc::message_python*>(python_buffer);
 }

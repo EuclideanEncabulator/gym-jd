@@ -1,8 +1,17 @@
-{
-    "direction": [4, 3],
-    "position": [4, 3],
-    "cur_node": [4, 3],
-    "next_node": [4, 3],
-    "wheel_direction": [4, 3],
-    "velocity": [4, 1]
-}
+[
+  {
+    "changed": ["?", 1],
+    "direction": ["f", 4],
+    "position": ["f", 3],
+    "wheel_direction": ["f", 1],
+    "speed": ["f", 1],
+    "grounded": ["?", 1]
+  },
+  {
+    "changed": "?",
+    "reset": "?",
+    "steering": "f",
+    "throttle": "f",
+    "braking": "?"
+  }
+]

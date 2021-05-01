@@ -2,22 +2,31 @@
 
 #include "unity.hpp"
 #include <windows.h>
+#include <stdint.h>
 
 namespace ipc
 {
+#pragma pack(show)
+#pragma pack(push, 1)
 	struct message_python
 	{
-		bool close;
-		bool w, a, s, d;
+		bool changed;
+		bool reset;
+		float steering, throttle;
+		bool braking;
 	};
 
 	struct message_game
 	{
-		unity::vector3 direction, position, cur_node, next_node, wheel_direction;
-		float velocity;
+		bool changed;
+		unity::quaternion direction;
+		unity::vector3 position;
+		float wheel_direction, speed;
+		bool grounded;
 	};
+#pragma pack(pop)
 
 	bool initialize();
-	void write(message_game* msg);
-	ipc::message_python* read();
+	message_game* game();
+	message_python* python();
 }

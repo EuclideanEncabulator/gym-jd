@@ -24,7 +24,7 @@ namespace objects
 
 	unity::vector3 get_position(uintptr_t transform);
 	unity::quaternion get_rotation(uintptr_t transform);
+	unity::vector3 get_velocity(uintptr_t rigidbody);
 
-	bool load_scene(std::string& scene_name);
 	bool set_time_scale(float time_scale);
 }
