@@ -76,16 +76,6 @@ unity::quaternion objects::get_rotation(uintptr_t transform)
     return rotation;
 }
 
-unity::vector3 objects::get_velocity(uintptr_t rigidbody)
-{
-    unity::vector3 velocity;
-
-    static const auto rigidbody_get_velocity = reinterpret_cast<uint64_t(__fastcall*)(uintptr_t, unity::vector3&)>(unityplayer_base + offsets::rigidbody_get_velocity);
-    rigidbody_get_velocity(rigidbody, velocity);
-
-    return velocity;
-}
-
 bool objects::set_time_scale(float time_scale)
 {
     static const auto set_time_scale = reinterpret_cast<uint64_t(__fastcall*)(float time_scale)>(unityplayer_base + offsets::set_time_scale);

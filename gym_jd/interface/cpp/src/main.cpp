@@ -30,40 +30,42 @@ void start()
 	auto game_state = objects::find_active_object<jelly_drift::game_state>("GameState");
 	auto car = reinterpret_cast<jelly_drift::car*>(game_controller->current_car->mono_object->game_object->real_object->object);
 
-	bool last_changed = false;
-	auto python = ipc::python();
-	auto game = ipc::game();
+	objects::set_time_scale(0.0f);
+
+	using namespace std::chrono_literals;
 
 	while (true)
 	{
-		if (last_changed == python->changed)
-		{
-			using namespace std::chrono_literals;
-			std::this_thread::sleep_for(1ms);
-			continue;
-		}
+		WaitForSingleObject(ipc::python_mutex, INFINITE);
 
-		last_changed = python->changed;
+		ipc::game_buffer->direction = objects::get_rotation(car->centre_of_mass);
+		ipc::game_buffer->position = objects::get_position(car->centre_of_mass);
+		ipc::game_buffer->speed = car->speed;
+		ipc::game_buffer->grounded = car->grounded;
+		ipc::game_buffer->wheel_direction = car->steer_angle;
 
-		game->changed = !game->changed;
-		game->direction = objects::get_rotation(car->centre_of_mass);
-		game->position = objects::get_position(car->centre_of_mass);
-		game->speed = car->speed;
-		game->grounded = car->grounded;
-		game->wheel_direction = car->steer_angle;
+		ReleaseMutex(ipc::python_mutex);
 
-		if (python->reset)
+		WaitForSingleObject(ipc::game_mutex, INFINITE);
+
+		if (ipc::python_buffer->reset)
 		{
 			game_state->reset = true;
-			using namespace std::chrono_literals;
 			std::this_thread::sleep_for(100ms);
 			car = reinterpret_cast<jelly_drift::car*>(game_controller->current_car->mono_object->game_object->real_object->object);
 			continue;
 		}
 
-		car->throttle = python->throttle;
-		car->steering = python->steering;
-		car->braking = python->braking;
+		car->throttle = ipc::python_buffer->throttle;
+		car->steering = ipc::python_buffer->steering;
+		car->braking = ipc::python_buffer->braking;
+
+		auto time = std::chrono::steady_clock::now() + 33ms; // 30fps
+		objects::set_time_scale(1.0f);
+		std::this_thread::sleep_until(time);
+		objects::set_time_scale(0.0f);
+
+		ReleaseMutex(ipc::game_mutex);
 	}
 }
 

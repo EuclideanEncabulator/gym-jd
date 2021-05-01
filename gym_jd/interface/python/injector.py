@@ -42,5 +42,4 @@ def inject(pid, dll_path):
     module = get_module_handle(b"kernel32.dll")
     loadlibrary = get_proc_address(module, b"LoadLibraryA")
     thread_return = create_remote_thread(process, None, 0, loadlibrary, allocation, 0, byref(thread_id))
-
-    print(process, allocation, wrote, module, loadlibrary, thread_return)
+    

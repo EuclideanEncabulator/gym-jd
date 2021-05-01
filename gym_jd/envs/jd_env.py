@@ -9,6 +9,7 @@ from multiprocessing import shared_memory
 from gym_jd.interface.python.injector import inject
 from gym_jd.interface.python.ipc import Process
 from time import sleep
+import random
 
 class JDEnv(Env):
     def __init__(self, jd_path, dll_path):
@@ -33,7 +34,6 @@ class JDEnv(Env):
         sleep(5) # TODO: Move to c++, we can tell when unity has loaded.
         inject(self.process.pid, dll_path)
         self.nodes = np.load("config/nodes.npy")
-        self.changed = False
 
     def reset(self):
         # TODO: Start a new episode from the beginning
@@ -46,29 +46,28 @@ class JDEnv(Env):
         PSEUDO_MAX_SPEED = 300
         CONSIDER_NODES, PROXIMITY_RADIUS = 5, 5
 
-        self.changed = not self.changed
+        observation = self.process.read()
+
+        # # TODO: Get reaal observation (state)
+        # distances, index = cdist([observation["position"]], self.nodes[:CONSIDER_NODES]), np.arange(CONSIDER_NODES)
+        # path_proximity = (distances * index ^ 2).reciprocal().sum()
+
+        # # Remove currently passed nodes
+        # # Test wether episode finished
+        # self.nodes = np.delete(self.nodes, (distances < PROXIMITY_RADIUS).nonzero())
+        # done = self.nodes.size != 0
+
+        # reward = (observation["speed"] / PSEUDO_MAX_SPEED) * path_proximity
+
         self.process.write({
-            "changed": self.changed,
             "reset": False,
             "steering": 0.0,
-            "throttle": 1.0,
+            "throttle": random.random(),
             "braking": False
         })
 
-        # TODO: Get reaal observation (state)
-        observation = self.process.read()
-        distances, index = cdist([observation["position"]], self.nodes[:CONSIDER_NODES]), np.arrange(CONSIDER_NODES)
-        path_proximity = (distances * index ^ 2).reciprocal().sum()
-
-        # Remove currently passed nodes
-        # Test wether episode finished
-        self.nodes = np.delete(self.nodes, (distances < PROXIMITY_RADIUS).nonzero())
-        done = self.nodes.size != 0
-
-        reward = (observation["speed"] / PSEUDO_MAX_SPEED) * path_proximity
-
-        info = {} # extra info for debugging
-        return observation, reward, done, info
+        #info = {} # extra info for debugging
+        #return observation, reward, done, info
 
     # Display a single game on screen
     def render(self):

@@ -1,6 +1,5 @@
 [
   {
-    "changed": ["?", 1],
     "direction": ["f", 4],
     "position": ["f", 3],
     "wheel_direction": ["f", 1],
@@ -8,7 +7,6 @@
     "grounded": ["?", 1]
   },
   {
-    "changed": "?",
     "reset": "?",
     "steering": "f",
     "throttle": "f",
