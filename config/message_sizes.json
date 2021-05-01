@@ -1,0 +1,8 @@
+{
+    "direction": [4, 3],
+    "position": [4, 3],
+    "cur_node": [4, 3],
+    "next_node": [4, 3],
+    "wheel_direction": [4, 3],
+    "velocity": [4, 1]
+}

@@ -1,15 +1,11 @@
-from multiprocessing import shared_memory
-import numpy as np
+import json
 import subprocess
+from multiprocessing import shared_memory
 
-message_game = [
-    ("direction", 4, 3),
-    ("position", 4, 3),
-    ("cur_node", 4, 3),
-    ("next_node", 4, 3),
-    ("wheel_direction", 4, 3),
-    ("velocity", 4, 1),
-]
+import numpy as np
+
+with open("config/message_sizes.json") as file:
+    message_game = json.load(file).items()
 
 class Process:
     def __init__(self, path):
@@ -23,7 +19,7 @@ class Process:
         message = {}
         dt = np.dtype(np.float32)
 
-        for name, size, count in message_game:
+        for name, (size, count) in message_game:
             message[name] = np.frombuffer(self.game_mem.buf, offset=offset, count=count, dtype=dt)
             offset += size * count
 
