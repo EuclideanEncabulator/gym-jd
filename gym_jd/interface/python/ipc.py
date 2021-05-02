@@ -1,4 +1,5 @@
 import json
+import pkg_resources
 import subprocess
 from struct import pack, unpack, calcsize
 from multiprocessing import shared_memory
@@ -18,7 +19,7 @@ release_mutex = windll.kernel32.ReleaseMutex
 release_mutex.argtypes = [win.HANDLE]
 release_mutex.restype = win.BOOL
 
-with open("config/message_sizes.json") as file:
+with open(pkg_resources.resource_filename("extra", "message_sizes.json")) as file:
     message_types = json.load(file)
     message_game = message_types[0].items()
     message_python = message_types[1].items()
