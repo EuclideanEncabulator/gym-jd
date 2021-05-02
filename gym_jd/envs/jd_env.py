@@ -34,8 +34,11 @@ class JDEnv(Env):
 
         self.process = Process(jd_path)
         sleep(5) # TODO: Move to c++, we can tell when unity has loaded
-        dll_path = pkg_resources.resource_filename("extra", "jelly_drift_interface.dll").replace("\\", "/")
+        dll_path = pkg_resources.resource_filename("extra", "jelly_drift_interface.dll")
         inject(self.process.pid, dll_path.encode("ascii"))
+        sleep(1)
+
+        self.reset()
 
     def reset(self):
         return self.action_observation(reset=True)
@@ -52,24 +55,27 @@ class JDEnv(Env):
 
     def step(self, action):
         PSEUDO_MAX_SPEED = 300
-        CONSIDER_NODES, PROXIMITY_RADIUS = 5, 5
+        CONSIDER_NODES, PROXIMITY_RADIUS = 1, 5
 
-        observation = self.action_observation(*action)
+        action.update({name: value[0] for name, value in action.items() if type(value) == np.ndarray and len(value) == 1})
+
+        observation = self.action_observation(**action)
+        observation["speed"] = observation["speed"][0]
 
         distances, index = cdist([observation["position"]], self.nodes[:CONSIDER_NODES]), np.arange(CONSIDER_NODES)
         path_proximity = np.reciprocal(distances * (index + 1) ** 2).sum()
 
         # Remove currently passed nodes
         # Test wether episode finished
-        self.nodes = np.delete(self.nodes, (distances < PROXIMITY_RADIUS).nonzero())
+        self.nodes = np.delete(self.nodes, (distances < PROXIMITY_RADIUS).nonzero(), axis=0)
         done = self.nodes.size != 0
 
-        observation["speed"] = observation["speed"][0]
         reward = (observation["speed"] / PSEUDO_MAX_SPEED) * path_proximity
 
         info = {} # extra info for debugging
         return observation, reward, done, info
 
     # Display a single game on screen
+    # TODO
     def render(self):
         pass
