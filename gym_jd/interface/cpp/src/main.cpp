@@ -38,16 +38,6 @@ void start()
 	{
 		WaitForSingleObject(ipc::python_mutex, INFINITE);
 
-		ipc::game_buffer->direction = objects::get_rotation(car->centre_of_mass);
-		ipc::game_buffer->position = objects::get_position(car->centre_of_mass);
-		ipc::game_buffer->speed = car->speed;
-		ipc::game_buffer->grounded = car->grounded;
-		ipc::game_buffer->wheel_direction = car->steer_angle;
-
-		ReleaseMutex(ipc::python_mutex);
-
-		WaitForSingleObject(ipc::game_mutex, INFINITE);
-
 		if (ipc::python_buffer->reset)
 		{
 			game_state->reset = true;
@@ -64,6 +54,16 @@ void start()
 		objects::set_time_scale(1.0f);
 		std::this_thread::sleep_until(time);
 		objects::set_time_scale(0.0f);
+
+		ReleaseMutex(ipc::python_mutex);
+
+		WaitForSingleObject(ipc::game_mutex, INFINITE);
+
+		ipc::game_buffer->direction = objects::get_rotation(car->centre_of_mass);
+		ipc::game_buffer->position = objects::get_position(car->centre_of_mass);
+		ipc::game_buffer->speed = car->speed;
+		ipc::game_buffer->grounded = car->grounded;
+		ipc::game_buffer->wheel_direction = car->steer_angle;
 
 		ReleaseMutex(ipc::game_mutex);
 	}

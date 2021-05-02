@@ -34,8 +34,8 @@ class Process:
         self.game_mutex = create_mutex(None, True, f"Local\\jd_game_mutex_{self.pid}")
 
     def read(self):
-        release_mutex(self.python_mutex)
-        wait_for_single_object(self.python_mutex, 0xFFFFFFFF, False)
+        release_mutex(self.game_mutex)
+        wait_for_single_object(self.game_mutex, 0xFFFFFFFF, False)
 
         offset = 0
         message = {}
@@ -47,8 +47,8 @@ class Process:
         return message
 
     def write(self, message):
-        release_mutex(self.game_mutex)
-        wait_for_single_object(self.game_mutex, 0xFFFFFFFF, False)
+        release_mutex(self.python_mutex)
+        wait_for_single_object(self.python_mutex, 0xFFFFFFFF, False)
 
         to_write = b""
         for name, (fmt) in message_python:
