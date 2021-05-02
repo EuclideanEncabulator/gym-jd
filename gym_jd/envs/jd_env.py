@@ -13,7 +13,7 @@ from time import sleep
 import random
 
 class JDEnv(Env):
-    def __init__(self, jd_path):
+    def __init__(self, jd_path, graphics=False):
         ONE_SHAPE = (1,)
 
         self.action_space = Dict({
@@ -32,7 +32,7 @@ class JDEnv(Env):
 
         self.nodes = np.load(pkg_resources.resource_filename("extra", "nodes.npy"))
 
-        self.process = Process(jd_path)
+        self.process = Process(jd_path, graphics)
         sleep(5) # TODO: Move to c++, we can tell when unity has loaded
         dll_path = pkg_resources.resource_filename("extra", "jelly_drift_interface.dll")
         inject(self.process.pid, dll_path.encode("ascii"))

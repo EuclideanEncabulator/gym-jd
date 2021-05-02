@@ -25,8 +25,10 @@ with open(pkg_resources.resource_filename("extra", "message_sizes.json")) as fil
     message_python = message_types[1].items()
 
 class Process:
-    def __init__(self, path):
-        self.process = subprocess.Popen([path])#, "-batchmode", "-nographics"])
+    def __init__(self, path, graphs):
+        arguments = [path, "-batchmode", "-nographics"] if graphs == True else [path]
+
+        self.process = subprocess.Popen(arguments)
         self.pid = self.process.pid
         self.python_mem = shared_memory.SharedMemory(name=f"Local\\jd_python_{self.pid}", size=10, create=True)
         self.game_mem = shared_memory.SharedMemory(name=f"Local\\jd_game_{self.pid}", size=37, create=True)
