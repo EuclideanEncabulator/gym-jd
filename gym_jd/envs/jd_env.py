@@ -36,14 +36,13 @@ class JDEnv(Env):
         sleep(5) # TODO: Move to c++, we can tell when unity has loaded
         dll_path = pkg_resources.resource_filename("extra", "jelly_drift_interface.dll")
         inject(self.process.pid, dll_path.encode("ascii"))
-        sleep(1)
-
+        sleep(0.1)
         self.reset()
 
     def reset(self):
-        return self.action_observation(reset=True)
+        return self.perform_action(reset=True)
 
-    def action_observation(self, reset: bool=False, steering: float=0.0, throttle: float=1., braking: bool=False):
+    def perform_action(self, reset: bool=False, steering: float=0.0, throttle: float=1., braking: bool=False):
         self.process.write({
             "reset": reset,
             "steering": steering,
@@ -51,6 +50,7 @@ class JDEnv(Env):
             "braking": braking
         })
 
+    def get_obervation(self):
         return self.process.read()
 
     def step(self, action):
@@ -58,8 +58,8 @@ class JDEnv(Env):
         CONSIDER_NODES, PROXIMITY_RADIUS = 1, 5
 
         action.update({name: value[0] for name, value in action.items() if type(value) == np.ndarray and len(value) == 1})
-
-        observation = self.action_observation(**action)
+        self.perform_action(**action)
+        observation = self.get_obervation()
         observation["speed"] = observation["speed"][0]
 
         distances, index = cdist([observation["position"]], self.nodes[:CONSIDER_NODES]), np.arange(CONSIDER_NODES)

@@ -47,13 +47,13 @@ class Process:
         return message
 
     def write(self, message):
-        release_mutex(self.python_mutex)
-        wait_for_single_object(self.python_mutex, 0xFFFFFFFF, False)
-
         to_write = b""
         for name, (fmt) in message_python:
             to_write += pack(fmt, message[name])
         self.python_mem.buf[:] = to_write
+
+        release_mutex(self.python_mutex)
+        wait_for_single_object(self.python_mutex, 0xFFFFFFFF, False)
 
     def destroy(self):
         self.python_mem.close()

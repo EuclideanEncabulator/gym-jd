@@ -30,8 +30,6 @@ void start()
 	auto game_state = objects::find_active_object<jelly_drift::game_state>("GameState");
 	auto car = reinterpret_cast<jelly_drift::car*>(game_controller->current_car->mono_object->game_object->real_object->object);
 
-	objects::set_time_scale(0.0f);
-
 	using namespace std::chrono_literals;
 
 	while (true)
@@ -40,8 +38,10 @@ void start()
 
 		if (ipc::python_buffer->reset)
 		{
+			ReleaseMutex(ipc::python_mutex);
 			game_state->reset = true;
 			std::this_thread::sleep_for(100ms);
+			auto game_controller = objects::find_active_object<jelly_drift::game_controller>("GameController");
 			car = reinterpret_cast<jelly_drift::car*>(game_controller->current_car->mono_object->game_object->real_object->object);
 			continue;
 		}
@@ -50,12 +50,12 @@ void start()
 		car->steering = ipc::python_buffer->steering;
 		car->braking = ipc::python_buffer->braking;
 
+		ReleaseMutex(ipc::python_mutex);
+
 		auto time = std::chrono::steady_clock::now() + 33ms; // 30fps
 		objects::set_time_scale(1.0f);
 		std::this_thread::sleep_until(time);
 		objects::set_time_scale(0.0f);
-
-		ReleaseMutex(ipc::python_mutex);
 
 		WaitForSingleObject(ipc::game_mutex, INFINITE);
 
