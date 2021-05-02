@@ -40,18 +40,19 @@ class JDEnv(Env):
         self.reset()
 
     def reset(self):
-        return self.perform_action(reset=True)
+        self.perform_action(reset=True)
+        return self.get_observation(wait=False)
 
-    def perform_action(self, reset: bool=False, steering: float=0.0, throttle: float=1., braking: bool=False):
+    def perform_action(self, wait=True, reset: bool=False, steering: float=0.0, throttle: float=1., braking: bool=False):
         self.process.write({
             "reset": reset,
             "steering": steering,
             "throttle": throttle,
             "braking": braking
-        })
+        }, wait)
 
-    def get_obervation(self):
-        return self.process.read()
+    def get_observation(self, wait=True):
+        return self.process.read(wait)
 
     def step(self, action):
         PSEUDO_MAX_SPEED = 300
@@ -59,7 +60,7 @@ class JDEnv(Env):
 
         action.update({name: value[0] for name, value in action.items() if type(value) == np.ndarray and len(value) == 1})
         self.perform_action(**action)
-        observation = self.get_obervation()
+        observation = self.get_observation()
         observation["speed"] = observation["speed"][0]
 
         distances, index = cdist([observation["position"]], self.nodes[:CONSIDER_NODES]), np.arange(CONSIDER_NODES)

@@ -35,9 +35,10 @@ class Process:
         self.python_mutex = create_mutex(None, True, f"Local\\jd_python_mutex_{self.pid}")
         self.game_mutex = create_mutex(None, True, f"Local\\jd_game_mutex_{self.pid}")
 
-    def read(self):
-        release_mutex(self.game_mutex)
-        wait_for_single_object(self.game_mutex, 0xFFFFFFFF, False)
+    def read(self, wait=True):
+        if wait:
+            release_mutex(self.game_mutex)
+            wait_for_single_object(self.game_mutex, 0xFFFFFFFF, False)
 
         offset = 0
         message = {}
@@ -48,14 +49,15 @@ class Process:
 
         return message
 
-    def write(self, message):
+    def write(self, message, wait=True):
         to_write = b""
         for name, (fmt) in message_python:
             to_write += pack(fmt, message[name])
         self.python_mem.buf[:] = to_write
 
-        release_mutex(self.python_mutex)
-        wait_for_single_object(self.python_mutex, 0xFFFFFFFF, False)
+        if wait:
+            release_mutex(self.python_mutex)
+            wait_for_single_object(self.python_mutex, 0xFFFFFFFF, False)
 
     def destroy(self):
         self.python_mem.close()
