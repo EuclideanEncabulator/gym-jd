@@ -1,7 +1,7 @@
-workspace "jelly_drift_ppo"
+workspace "jelly_drift_interface"
 configurations { "Debug", "Release" }
 
-project "jelly_drift_ppo"
+project "jelly_drift_interface"
     kind "SharedLib"
     language "C++"
     targetdir "bin/%{cfg.buildcfg}"
