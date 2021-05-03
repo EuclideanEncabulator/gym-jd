@@ -13,15 +13,19 @@ from time import sleep
 import random
 
 class JDEnv(Env):
-    def __init__(self, jd_path, graphics=False):
+    def __init__(self, jd_path, graphics=False, continuous=True):
         ONE_SHAPE = (1,)
         self.PSEUDO_MAX_SPEED = 300
         self.CONSIDER_NODES, self.PROXIMITY_RADIUS = 1, 5
 
         self.action_space = Dict({
             "steering": Box(low=-1, high=1, shape=ONE_SHAPE),
-            "braking": Discrete(2),
+            "braking": Box(low=0, high=1, shape=ONE_SHAPE),
             "throttle": Box(low=-1, high=1, shape=ONE_SHAPE)
+        }) if continuous else Dict({
+            "steering": Discrete(2),
+            "braking": Discrete(2),
+            "throttle": Discrete(2)
         })
         self.observation_space = Dict({
             "speed": Box(low=0, high=np.inf, shape=ONE_SHAPE),
@@ -45,12 +49,12 @@ class JDEnv(Env):
         
         return self.get_observation(wait=False)
 
-    def perform_action(self, wait=True, reset: bool=False, steering: float=0.0, throttle: float=1., braking: bool=False):
+    def perform_action(self, wait=True, reset: bool=False, steering: float=0.0, throttle: float=1., braking: int=0):
         self.process.write({
             "reset": reset,
             "steering": steering,
             "throttle": throttle,
-            "braking": braking
+            "braking": int(braking >= 0.5)
         }, wait)
 
     def get_observation(self, wait=True):
