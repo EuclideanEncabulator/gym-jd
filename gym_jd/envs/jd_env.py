@@ -17,15 +17,16 @@ class JDEnv(Env):
         ONE_SHAPE = (1,)
         self.PSEUDO_MAX_SPEED = 300
         self.CONSIDER_NODES, self.PROXIMITY_RADIUS = 1, 5
+        self.CONTINUOUS = continuous
 
         self.action_space = Dict({
             "steering": Box(low=-1, high=1, shape=ONE_SHAPE),
             "braking": Box(low=0, high=1, shape=ONE_SHAPE),
             "throttle": Box(low=-1, high=1, shape=ONE_SHAPE)
-        }) if continuous else Dict({
-            "steering": Discrete(2),
+        }) if self.CONTINUOUS else Dict({
+            "steering": Discrete(3),
             "braking": Discrete(2),
-            "throttle": Discrete(2)
+            "throttle": Discrete(3)
         })
         self.observation_space = Dict({
             "speed": Box(low=0, high=np.inf, shape=ONE_SHAPE),
@@ -52,8 +53,8 @@ class JDEnv(Env):
     def perform_action(self, wait=True, reset: bool=False, steering: float=0.0, throttle: float=1., braking: int=0):
         self.process.write({
             "reset": reset,
-            "steering": steering,
-            "throttle": throttle,
+            "steering": steering if self.CONTINUOUS else steering - 1,
+            "throttle": throttle if self.CONTINUOUS else throttle - 1,
             "braking": int(braking >= 0.5)
         }, wait)
 
