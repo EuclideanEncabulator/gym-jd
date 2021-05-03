@@ -48,7 +48,6 @@ class Process:
             dt = np.dtype(fmt)
             message[name] = np.frombuffer(self.game_mem.buf, offset=offset, count=count, dtype=dt)
             offset += dt.itemsize * count
-        print(message)
         return message
 
     def write(self, message, wait=True):
