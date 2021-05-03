@@ -1,10 +1,10 @@
 [
   {
-    "direction": ["f", 4],
-    "position": ["f", 3],
-    "wheel_direction": ["f", 1],
-    "speed": ["f", 1],
-    "grounded": ["?", 1]
+    "direction": ["float32", 4],
+    "position": ["float32", 3],
+    "wheel_direction": ["float32", 1],
+    "speed": ["float32", 1],
+    "grounded": ["uint8", 1]
   },
   {
     "reset": "?",

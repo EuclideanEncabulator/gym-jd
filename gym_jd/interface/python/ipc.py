@@ -25,11 +25,6 @@ with open(pkg_resources.resource_filename("extra", "message_sizes.json")) as fil
     message_game = message_types[0].items()
     message_python = message_types[1].items()
 
-dtypes = {
-    "?": np.dtype(np.bool),
-    "f": np.dtype(np.float32)
-}
-
 class Process:
     def __init__(self, path, graphs):
         arguments = [path, "-batchmode", "-nographics"] if graphs == True else [path]
@@ -50,9 +45,10 @@ class Process:
         message = {}
 
         for name, (fmt, count) in message_game:
-            message[name] = np.frombuffer(self.game_mem.buf, offset=offset, count=count, dtype=dtypes[fmt])
-            offset += calcsize(fmt) * count
-
+            dt = np.dtype(fmt)
+            message[name] = np.frombuffer(self.game_mem.buf, offset=offset, count=count, dtype=dt)
+            offset += dt.itemsize * count
+        print(message)
         return message
 
     def write(self, message, wait=True):
