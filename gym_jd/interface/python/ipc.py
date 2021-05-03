@@ -1,11 +1,12 @@
 import json
-import pkg_resources
 import subprocess
-from struct import pack, unpack, calcsize
-from multiprocessing import shared_memory
 from ctypes import windll
 from ctypes import wintypes as win
+from multiprocessing import shared_memory
+from struct import calcsize, pack, unpack
+
 import numpy as np
+import pkg_resources
 
 create_mutex = windll.kernel32.CreateMutexW
 create_mutex.argtypes = [win.LPCVOID, win.BOOL, win.LPCWSTR]
@@ -40,14 +41,7 @@ class Process:
             release_mutex(self.game_mutex)
             wait_for_single_object(self.game_mutex, 0xFFFFFFFF, False)
 
-        offset = 0
-        message = {}
-
-        for name, (fmt, count) in message_game:
-            size = calcsize(fmt)
-            message[name] = [unpack(fmt, self.game_mem.buf[i:i+size])[0] for i in range(offset, offset + size * count, size)]
-
-        return message
+        return {name: np.frombuffer(self.game_mem.buf, count=count) for name, (_, count) in message_game}
 
     def write(self, message, wait=True):
         to_write = b""
