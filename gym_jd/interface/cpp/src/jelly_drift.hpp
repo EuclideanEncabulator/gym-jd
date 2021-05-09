@@ -22,6 +22,8 @@ namespace jelly_drift
 		bool grounded;
 		uint8_t padB1[0x23];
 		float steer_angle;
+		uint8_t padD8[0x38];
+		unity::vector3 velocity;
 	};
 
 	struct game_controller

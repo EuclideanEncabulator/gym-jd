@@ -17,7 +17,7 @@ namespace ipc
 	struct message_game
 	{
 		unity::quaternion direction;
-		unity::vector3 position;
+		unity::vector3 position, velocity;
 		float wheel_direction, speed;
 		bool grounded;
 	};

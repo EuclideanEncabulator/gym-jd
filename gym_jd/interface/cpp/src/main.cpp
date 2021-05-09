@@ -10,9 +10,9 @@
 
 void start()
 {
-	AllocConsole();
-	freopen_s((FILE**)stdin, "CONIN$", "r", stdin);
-	freopen_s((FILE**)stdout, "CONOUT$", "w", stdout);
+	//AllocConsole();
+	//freopen_s((FILE**)stdin, "CONIN$", "r", stdin);
+	//freopen_s((FILE**)stdout, "CONOUT$", "w", stdout);
 
 	if (!ipc::initialize())
 	{
@@ -38,11 +38,11 @@ void start()
 
 		if (ipc::python_buffer->reset)
 		{
-			ReleaseMutex(ipc::python_mutex);
 			game_state->reset = true;
 			std::this_thread::sleep_for(100ms);
 			auto game_controller = objects::find_active_object<jelly_drift::game_controller>("GameController");
 			car = reinterpret_cast<jelly_drift::car*>(game_controller->current_car->mono_object->game_object->real_object->object);
+			ReleaseMutex(ipc::python_mutex);
 			continue;
 		}
 
@@ -64,6 +64,7 @@ void start()
 		ipc::game_buffer->speed = car->speed;
 		ipc::game_buffer->grounded = car->grounded;
 		ipc::game_buffer->wheel_direction = car->steer_angle;
+		ipc::game_buffer->velocity = car->velocity;
 
 		ReleaseMutex(ipc::game_mutex);
 	}
