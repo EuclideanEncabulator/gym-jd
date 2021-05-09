@@ -19,7 +19,7 @@ class JDEnv(Env):
         self.PSEUDO_MAX_SPEED = 300
         self.CONSIDER_NODES, self.PROXIMITY_RADIUS = 1, 7
         self.CONTINUOUS = continuous
-        self.MAX_EPISODE_STEPS = 1000
+        self.MAX_EPISODE_STEPS = 500
         self.NODES = np.load(pkg_resources.resource_filename("extra", "nodes.npy"))
 
         self.steps, self.current_node, self.best_node = 0, 1, 1
@@ -54,10 +54,10 @@ class JDEnv(Env):
         self.reset()
 
     def episode_finished(self):
-        done = self.steps > self.MAX_EPISODE_STEPS + self.current_node * 100
-        if self.steps >= self.MAX_EPISODE_STEPS: self.steps = 0
+        max_steps_reached = self.steps > self.MAX_EPISODE_STEPS + self.current_node * 100
+        self.steps = 0 if max_steps_reached else self.steps + 1
 
-        return done
+        return max_steps_reached
 
     def reset(self):
         if self.current_node > self.best_node: self.best_node = self.current_node
@@ -74,8 +74,6 @@ class JDEnv(Env):
             "throttle": throttle if self.CONTINUOUS else throttle - 1,
             "braking": 0# int(braking >= 0.5)
         }, wait)
-
-        self.steps += 1
 
     def get_observation(self, wait=True):
         observation = self.process.read(wait)
@@ -120,7 +118,6 @@ class JDEnv(Env):
         if node_distance <= self.PROXIMITY_RADIUS:
             print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
             self.current_node += 1
-            self.steps = 0
             self.velocities.clear()
 
             reward = (self.current_node * velocity_rating) ** 2 if velocity_rating > 1 else self.current_node ^ 2
