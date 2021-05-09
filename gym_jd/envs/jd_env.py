@@ -77,7 +77,7 @@ class JDEnv(Env):
         observation["grounded"] = int(observation["grounded"][0])
         observation["next_nodes"] = self.NODES[self.current_node:self.current_node + self.CONSIDER_NODES] - self.current_position # Polar co-ordinates
         observation["speed"] = observation["speed"][0]
-        observation["wheels"] = np.array([observation["wheel_1"], observation["wheel_2"], observation["wheel_3"], observation["wheel_4"]])
+        observation["wheels"] = np.array([observation["wheel_1"][0], observation["wheel_2"][0], observation["wheel_3"][0], observation["wheel_4"][0]])
 
         del observation["position"]
 
@@ -103,7 +103,7 @@ class JDEnv(Env):
         direction_rating = observation["difference"] if observation["difference"] != 0 else 1
         throttle_rating = (action["throttle"]) ** 2 if action["throttle"] > 0 else 0
 
-        reward = direction_rating * self.current_node + distance_rating
+        reward = (direction_rating * self.current_node + distance_rating) - sum(observation["wheels"]) * 0.2
 
         # Heavily reward going to node
         if node_distance <= self.PROXIMITY_RADIUS:
