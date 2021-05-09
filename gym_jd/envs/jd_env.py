@@ -71,7 +71,7 @@ class JDEnv(Env):
     def get_observation(self, wait=True):
         observation = self.process.read(wait)
 
-        self.old_possition, self.current_position = self.position, observation["position"]
+        self.old_position, self.current_position = self.position, observation["position"]
 
         observation["grounded"] = int(observation["grounded"][0])
         observation["next_nodes"] = self.NODES[self.current_node:self.current_node + self.CONSIDER_NODES] - self.current_position # Polar co-ordinates
