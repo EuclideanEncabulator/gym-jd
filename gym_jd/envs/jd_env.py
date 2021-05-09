@@ -1,40 +1,46 @@
 import gym
+import random
 import pkg_resources
 
 import numpy as np
 
 from gym import Env
 from gym.spaces import Dict, Discrete, Box
-from scipy.spatial.distance import cdist
+from scipy.spatial.distance import euclidean
 from multiprocessing import shared_memory
 from gym_jd.interface.python.injector import inject
 from gym_jd.interface.python.ipc import Process
 from time import sleep
-import random
 
 class JDEnv(Env):
     def __init__(self, jd_path, graphics=False, continuous=True):
         ONE_SHAPE = (1,)
         self.PSEUDO_MAX_SPEED = 300
-        self.CONSIDER_NODES, self.PROXIMITY_RADIUS = 1, 5
+        self.CONSIDER_NODES, self.PROXIMITY_RADIUS = 1, 7
         self.CONTINUOUS = continuous
+        self.MAX_EPISODE_STEPS = 1000
+        self.NODES = np.load(pkg_resources.resource_filename("extra", "nodes.npy"))
+
+        self.steps, self.current_node, self.best_node = 0, 1, 1
 
         self.action_space = Dict({
             "steering": Box(low=-1, high=1, shape=ONE_SHAPE),
-            "braking": Box(low=0, high=1, shape=ONE_SHAPE),
+            # "braking": Box(low=0, high=1, shape=ONE_SHAPE),
             "throttle": Box(low=-1, high=1, shape=ONE_SHAPE)
         }) if self.CONTINUOUS else Dict({
             "steering": Discrete(3),
-            "braking": Discrete(2),
+            # "braking": Discrete(2),
             "throttle": Discrete(3)
         })
         self.observation_space = Dict({
-            "speed": Box(low=0, high=np.inf, shape=ONE_SHAPE),
+            "speed": Box(low=0, high=500, shape=ONE_SHAPE),
+            "velocity": Box(low=-500, high=500, shape=(3,)),
             "direction": Box(low=-1, high=1, shape=(4,)), # quaternion
-            "position": Box(low=-np.inf, high=np.inf, shape=(3,)),
-            "grounded": Discrete(2),
             "wheel_direction": Box(low=-1, high=1, shape=ONE_SHAPE),
-            "next_nodes": Box(low=-np.inf, high=np.inf, shape=(self.CONSIDER_NODES, 3))
+            # "position": Box(low=-np.inf, high=np.inf, shape=(2, 3)),
+            "next_nodes": Box(low=-1000, high=1000, shape=(self.CONSIDER_NODES, 3)),
+            "difference": Box(low=-1, high=1, shape=ONE_SHAPE),
+            "grounded": Discrete(2)
         })
 
         self.process = Process(jd_path, graphics)
@@ -45,7 +51,9 @@ class JDEnv(Env):
         self.reset()
 
     def reset(self):
-        self.nodes = np.load(pkg_resources.resource_filename("extra", "nodes.npy"))
+        if self.current_node > self.best_node: self.best_node = self.current_node
+        self.position, self.current_node = self.NODES[0], 1
+
         self.perform_action(reset=True)
         
         return self.get_observation(wait=False)
@@ -55,13 +63,29 @@ class JDEnv(Env):
             "reset": reset,
             "steering": steering if self.CONTINUOUS else steering - 1,
             "throttle": throttle if self.CONTINUOUS else throttle - 1,
-            "braking": int(braking >= 0.5)
+            "braking": 0# int(braking >= 0.5)
         }, wait)
+
+        self.steps += 1
 
     def get_observation(self, wait=True):
         observation = self.process.read(wait)
+
+        self.old_possition, self.current_position = self.position, observation["position"]
+
         observation["grounded"] = int(observation["grounded"][0])
-        observation["next_nodes"] = self.nodes[:self.CONSIDER_NODES]
+        observation["next_nodes"] = self.NODES[self.current_node:self.current_node + self.CONSIDER_NODES] - self.current_position # Polar co-ordinates
+        observation["speed"] = observation["speed"][0]
+
+        del observation["position"]
+
+        car_node_direction = self.NODES[self.current_node] - self.current_position
+        car_node_magnitude, velocity_magnitude = np.linalg.norm(car_node_direction), np.linalg.norm(observation["velocity"])
+
+        # Get difference in car direction/node
+        if car_node_magnitude != 0 and velocity_magnitude != 0:
+            observation["difference"] = np.dot(car_node_direction / car_node_magnitude, observation["velocity"] / velocity_magnitude)
+        else: observation["difference"] = 0
 
         return observation
 
@@ -70,15 +94,34 @@ class JDEnv(Env):
         self.perform_action(**action)
         observation = self.get_observation()
 
-        distances, index = cdist([observation["position"]], self.nodes[:self.CONSIDER_NODES]), np.arange(self.CONSIDER_NODES)
-        path_proximity = np.reciprocal(distances * (index + 1) ** 2).sum()
+        node_distance = euclidean(self.NODES[self.current_node], self.current_position)
 
-        # Remove currently passed nodes
-        # Test wether episode finished
-        self.nodes = np.delete(self.nodes, (distances < self.PROXIMITY_RADIUS).nonzero(), axis=0)
-        done = self.nodes.size == 0
+        distance_rating = np.reciprocal(node_distance) if node_distance <= 10 else 0
+        direction_rating = observation["difference"] if observation["difference"] != 0 else 1
+        throttle_rating = (action["throttle"]) ** 2 if action["throttle"] > 0 else 0
 
-        reward = (observation["speed"][0] / self.PSEUDO_MAX_SPEED) * path_proximity
+        reward = direction_rating * self.current_node + distance_rating
+
+        # Heavily reward going to node
+        if node_distance <= self.PROXIMITY_RADIUS:
+            print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+            self.current_node += 1
+            self.steps = 0
+
+            reward = self.current_node ^ 2
+
+        # Handle episode resets
+        done = self.current_node == self.NODES.size - 1 or self.steps >= self.MAX_EPISODE_STEPS
+        # done = self.current_node > self.best_node or self.steps >= self.MAX_EPISODE_STEPS
+        if self.steps >= self.MAX_EPISODE_STEPS: self.steps = 0
+
+        if self.steps % 100 == 0:
+            print(f"STEP {self.steps}")
+            print("distance rating", node_distance)
+            print("direction rating", direction_rating)
+            print("throttle_rating", throttle_rating)
+            print("reward", reward)
+            print()
 
         info = {} # extra info for debugging
         return observation, reward, done, info

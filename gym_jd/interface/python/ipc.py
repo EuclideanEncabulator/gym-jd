@@ -32,7 +32,7 @@ class Process:
         self.process = subprocess.Popen(arguments)
         self.pid = self.process.pid
         self.python_mem = shared_memory.SharedMemory(name=f"Local\\jd_python_{self.pid}", size=10, create=True)
-        self.game_mem = shared_memory.SharedMemory(name=f"Local\\jd_game_{self.pid}", size=37, create=True)
+        self.game_mem = shared_memory.SharedMemory(name=f"Local\\jd_game_{self.pid}", size=49, create=True)
         self.python_mutex = create_mutex(None, True, f"Local\\jd_python_mutex_{self.pid}")
         self.game_mutex = create_mutex(None, True, f"Local\\jd_game_mutex_{self.pid}")
 

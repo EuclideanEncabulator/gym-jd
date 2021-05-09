@@ -2,6 +2,7 @@
   {
     "direction": ["float32", 4],
     "position": ["float32", 3],
+    "velocity": ["float32", 3],
     "wheel_direction": ["float32", 1],
     "speed": ["float32", 1],
     "grounded": ["uint8", 1]
