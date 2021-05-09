@@ -17,7 +17,7 @@ class JDEnv(Env):
     def __init__(self, jd_path, graphics=False, continuous=True):
         ONE_SHAPE = (1,)
         self.PSEUDO_MAX_SPEED = 300
-        self.CONSIDER_NODES, self.PROXIMITY_RADIUS = 1, 7
+        self.CONSIDER_NODES, self.PROXIMITY_RADIUS = 3, 7
         self.CONTINUOUS = continuous
         self.MAX_EPISODE_STEPS = 500
         self.NODES = np.load(pkg_resources.resource_filename("extra", "nodes.npy"))
