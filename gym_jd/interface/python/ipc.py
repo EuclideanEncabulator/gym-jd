@@ -27,7 +27,7 @@ with open(pkg_resources.resource_filename("extra", "message_sizes.json")) as fil
 
 class Process:
     def __init__(self, path, graphs):
-        arguments = [path, "-batchmode", "-nographics"] if graphs == True else [path]
+        arguments = [path, "-batchmode", "-nographics"] if graphs == True else [path, "-screen-height", "720", "-screen-width", "1280"]
 
         self.process = subprocess.Popen(arguments)
         self.pid = self.process.pid
