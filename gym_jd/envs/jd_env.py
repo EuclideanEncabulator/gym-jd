@@ -121,7 +121,7 @@ class JDEnv(Env):
             self.current_node += 1
             self.velocities.clear()
 
-            reward = (self.current_node * velocity_rating) ** 2 if velocity_rating > 1 else self.current_node ^ 2
+            reward = (self.current_node * velocity_rating) ** 2 if velocity_rating > 1 else self.current_node ** 2
 
         if self.steps % 100 == 0:
             print(f"STEP {self.steps}")
