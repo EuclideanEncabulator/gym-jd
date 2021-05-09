@@ -112,7 +112,7 @@ class JDEnv(Env):
         distance_rating = np.reciprocal(node_distance) if node_distance <= 10 else 0
         direction_rating = observation["difference"] if observation["difference"] != 0 else 1
         throttle_rating = (action["throttle"]) ** 2 if action["throttle"] > 0 else 0
-        velocity_rating = velocity_mean if velocity_mean > 0 else 0
+        velocity_rating = -velocity_mean if velocity_mean < 0 else velocity_mean * 0.2
 
         reward = direction_rating * self.current_node + distance_rating + velocity_rating - sum(observation["wheels"]) * 0.2
 
@@ -127,7 +127,7 @@ class JDEnv(Env):
 
         if self.steps % 100 == 0:
             print(f"STEP {self.steps}")
-            print("distance rating", node_distance)
+            print("distance rating", distance_rating)
             print("direction rating", direction_rating)
             print("throttle_rating", throttle_rating)
             print("velocity rating", velocity_rating)
