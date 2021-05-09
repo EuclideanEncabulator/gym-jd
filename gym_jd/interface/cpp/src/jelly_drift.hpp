@@ -24,6 +24,10 @@ namespace jelly_drift
 		float steer_angle;
 		uint8_t padD8[0x38];
 		unity::vector3 velocity;
+		bool front_left;
+		bool front_right;
+		bool rear_left;
+		bool rear_right;
 	};
 
 	struct game_controller

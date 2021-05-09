@@ -20,6 +20,7 @@ namespace ipc
 		unity::vector3 position, velocity;
 		float wheel_direction, speed;
 		bool grounded;
+		bool fr, fl, rr, rl;
 	};
 #pragma pack(pop)
 

@@ -5,7 +5,7 @@ import pkg_resources
 import numpy as np
 
 from gym import Env
-from gym.spaces import Dict, Discrete, Box
+from gym.spaces import Dict, Discrete, Box, MultiBinary
 from scipy.spatial.distance import euclidean
 from multiprocessing import shared_memory
 from gym_jd.interface.python.injector import inject
@@ -40,7 +40,8 @@ class JDEnv(Env):
             # "position": Box(low=-np.inf, high=np.inf, shape=(2, 3)),
             "next_nodes": Box(low=-1000, high=1000, shape=(self.CONSIDER_NODES, 3)),
             "difference": Box(low=-1, high=1, shape=ONE_SHAPE),
-            "grounded": Discrete(2)
+            "grounded": Discrete(2),
+            "wheels": MultiBinary(4),
         })
 
         self.process = Process(jd_path, graphics)
@@ -76,6 +77,7 @@ class JDEnv(Env):
         observation["grounded"] = int(observation["grounded"][0])
         observation["next_nodes"] = self.NODES[self.current_node:self.current_node + self.CONSIDER_NODES] - self.current_position # Polar co-ordinates
         observation["speed"] = observation["speed"][0]
+        observation["wheels"] = np.array([observation["wheel_1"], observation["wheel_2"], observation["wheel_3"], observation["wheel_4"]])
 
         del observation["position"]
 
@@ -95,6 +97,7 @@ class JDEnv(Env):
         observation = self.get_observation()
 
         node_distance = euclidean(self.NODES[self.current_node], self.current_position)
+        
 
         distance_rating = np.reciprocal(node_distance) if node_distance <= 10 else 0
         direction_rating = observation["difference"] if observation["difference"] != 0 else 1
@@ -121,6 +124,7 @@ class JDEnv(Env):
             print("direction rating", direction_rating)
             print("throttle_rating", throttle_rating)
             print("reward", reward)
+            print(observation["wheels"])
             print()
 
         info = {} # extra info for debugging

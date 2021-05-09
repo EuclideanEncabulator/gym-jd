@@ -5,7 +5,11 @@
     "velocity": ["float32", 3],
     "wheel_direction": ["float32", 1],
     "speed": ["float32", 1],
-    "grounded": ["uint8", 1]
+    "grounded": ["uint8", 1],
+    "wheel_1": ["uint8", 1],
+    "wheel_2": ["uint8", 1],
+    "wheel_3": ["uint8", 1],
+    "wheel_4": ["uint8", 1]
   },
   {
     "reset": "?",
