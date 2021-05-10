@@ -6,5 +6,6 @@ dependencies:
   - pylint
   - rope
   - numpy
+  - numba
   - gym
   - pywin32
