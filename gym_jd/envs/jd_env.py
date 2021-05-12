@@ -88,14 +88,14 @@ class JDEnv(Env):
         self.perform_action(**action)
         observation = self.get_observation()
         
-        velocity_mean = np.mean(np.array(self.velocities))
+        #velocity_mean = np.mean(np.array(self.velocities))
 
         node_rating = self.NODES.penetrations
-        surface_rating = -sum(observation["wheels"]) * 0.2
-        throttle_rating = (action["throttle"]) ** (1 / 2) if action["throttle"] > 0 and surface_rating == 0 else 0
-        velocity_rating = -velocity_mean if velocity_mean < 0 and surface_rating == 0 else velocity_mean * 0.2
+        #surface_rating = -sum(observation["wheels"]) * 0.2
+        #throttle_rating = (action["throttle"]) ** (1 / 2) if action["throttle"] > 0 and surface_rating == 0 else 0
+        #velocity_rating = -velocity_mean if velocity_mean < 0 and surface_rating == 0 else velocity_mean * 0.2
 
-        reward = node_rating + throttle_rating + surface_rating
+        reward = node_rating
 
         # print("node rating", node_rating)
         # print("surface rating", surface_rating)

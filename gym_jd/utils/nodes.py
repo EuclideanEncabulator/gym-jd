@@ -20,7 +20,7 @@ class NodeFinder():
 
         # If close enough to current node, count all previous as completed
         if np.any(distances): self.nearest_pair = lower_bound + distances.argmin()
-        if self.nearest_pair >= self.target_node and distances[self.nearest_pair] <= self.NODE_THRESHOLD:
+        if self.nearest_pair >= self.target_node and distances[self.nearest_pair - lower_bound] <= self.NODE_THRESHOLD:
             self.penetrations = self.nearest_pair - self.target_node + 1
             self.target_node += self.penetrations
             self.steps_since_node = 0
