@@ -2,7 +2,7 @@ import numpy as np
 
 from scipy.spatial.distance import cdist
 class NodeFinder():
-    def __init__(self, boundaries, nodes_to_check=10, max_visible_distance=20, node_threshold=8):
+    def __init__(self, boundaries, nodes_to_check=10, max_visible_distance=20, node_threshold=7.5):
         self.BOUNDARIES = boundaries
         self.NODES = (boundaries[:, 1] + boundaries[:, 0]) / 2
         self.MAX_VISIBLE_DISTANCE, self.NODES_TO_CHECK = max_visible_distance ** 2, nodes_to_check // 2
@@ -24,7 +24,9 @@ class NodeFinder():
             self.penetrations = self.nearest_pair - self.target_node + 1
             self.target_node += self.penetrations
             self.steps_since_node = 0
-        else: self.steps_since_node += 1
+        else:
+            self.penetrations = 0
+            self.steps_since_node += 1
 
         # Return boundaries padded to the right size
         boundaries = self.BOUNDARIES[lower_bound:upper_bound][(distances <= self.MAX_VISIBLE_DISTANCE).squeeze()]
