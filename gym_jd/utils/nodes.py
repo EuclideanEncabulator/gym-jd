@@ -13,8 +13,8 @@ class NodeFinder():
     # Gets co-ordinates of closeby boundaries whilst counting penetrations
     def get_nearby_boundaries(self, current_position):
         # Consider points around the previously closest node
-        lower_bound = min(self.nearest_pair - self.NODES_TO_CHECK,  0)
-        upper_bound = max(self.nearest_pair + self.NODES_TO_CHECK, self.NODES.size - 1)
+        lower_bound = max(self.nearest_pair - self.NODES_TO_CHECK,  0)
+        upper_bound = min(self.nearest_pair + self.NODES_TO_CHECK, self.NODES.size - 1)
 
         distances = cdist(self.NODES[lower_bound:upper_bound], [current_position], metric="sqeuclidean")
 
