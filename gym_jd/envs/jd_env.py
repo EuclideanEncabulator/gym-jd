@@ -17,13 +17,12 @@ class JDEnv(Env):
     def __init__(self, jd_path, graphics=False, continuous=True):
         ONE_SHAPE = (1,)
         self.PSEUDO_MAX_SPEED = 300
-        self.MAX_VISIBLE_NODES, self.PROXIMITY_RADIUS = 20, 1
+        self.MAX_VISIBLE_NODES = 20
         self.CONTINUOUS = continuous
         self.MAX_IDLE_STEPS = 100
         self.NODES = NodeFinder(
             np.load(pkg_resources.resource_filename("extra", "nodes.npy")),
-            node_threshold=self.PROXIMITY_RADIUS,
-            max_nodes=self.MAX_VISIBLE_NODES
+            nodes_to_check=self.MAX_VISIBLE_NODES
         )
 
         self.velocities = deque(maxlen=100)
@@ -76,7 +75,7 @@ class JDEnv(Env):
 
         observation["grounded"] = observation["grounded"][0]
         observation["wheels"] = np.array([observation["wheel_1"][0], observation["wheel_2"][0], observation["wheel_3"][0], observation["wheel_4"][0]])
-        observation["road_boundaries"] = self.NODES.get_closest(observation["position"])
+        observation["road_boundaries"] = self.NODES.get_nearby_boundaries(observation["position"])
 
         self.velocities.append(observation["velocity"])
 
