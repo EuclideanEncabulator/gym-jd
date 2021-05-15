@@ -20,8 +20,9 @@ class JDEnv(Env):
         self.MAX_VISIBLE_NODES = 20
         self.CONTINUOUS = continuous
         self.MAX_IDLE_STEPS = 100
+        self.NODE_LIST = np.load(pkg_resources.resource_filename("extra", "nodes.npy"))
         self.NODES = NodeFinder(
-            np.load(pkg_resources.resource_filename("extra", "nodes.npy")),
+            self.NODE_LIST,
             nodes_to_check=self.MAX_VISIBLE_NODES
         )
 
@@ -78,6 +79,7 @@ class JDEnv(Env):
         observation["road_boundaries"] = self.NODES.get_nearby_boundaries(observation["position"])
 
         self.velocities.append(observation["velocity"])
+        self.position = observation["position"]
 
         del observation["position"], observation["speed"]
 
@@ -104,7 +106,7 @@ class JDEnv(Env):
         # print("reward", reward)
         # print()
 
-        info = {} # extra info for debugging
+        info = {"position": self.position, "road_boundaries": observation["road_boundaries"], "nodes": self.NODE_LIST} # extra info for debugging
         return observation, reward, self.episode_finished(), info
 
     # Display a single game on screen
