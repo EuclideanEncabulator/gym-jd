@@ -1,12 +1,9 @@
-import gym
-import random
 import pkg_resources
 
 import numpy as np
 
 from gym import Env
 from gym.spaces import Dict, Discrete, Box, MultiBinary
-from multiprocessing import shared_memory
 from gym_jd.utils.nodes import NodeFinder
 from gym_jd.interface.python.injector import inject
 from gym_jd.interface.python.ipc import Process
@@ -17,13 +14,16 @@ class JDEnv(Env):
     def __init__(self, jd_path, graphics=False, continuous=True):
         ONE_SHAPE = (1,)
         self.PSEUDO_MAX_SPEED = 300
-        self.MAX_VISIBLE_NODES = 20
+        self.NODES_TO_CHECK, self.VISIBLE_NODES = 3, 10
         self.CONTINUOUS = continuous
         self.MAX_IDLE_STEPS = 100
         self.BOUNDARIES = np.load(pkg_resources.resource_filename("extra", "nodes.npy"))
+        self.VISIBLE_FREQUENENCY = 2
         self.NODES = NodeFinder(
             self.BOUNDARIES,
-            nodes_to_check=self.MAX_VISIBLE_NODES
+            nodes_to_check=self.NODES_TO_CHECK,
+            visible_nodes=self.VISIBLE_NODES,
+            visible_frequency=self.VISIBLE_FREQUENENCY
         )
 
         self.velocities = deque(maxlen=100)
@@ -41,7 +41,7 @@ class JDEnv(Env):
             "velocity": Box(low=-500, high=500, shape=(3,)),
             "direction": Box(low=-1, high=1, shape=(4,)), # quaternion
             "wheel_direction": Box(low=-1, high=1, shape=ONE_SHAPE),
-            "road_boundaries": Box(low=-1000, high=1000, shape=(self.MAX_VISIBLE_NODES, 2, 3)),
+            "road_boundaries": Box(low=-1000, high=1000, shape=(self.VISIBLE_NODES // self.BOUNDARY_FREQUENENCY, 2, 3)),
             "grounded": MultiBinary(1),
             "wheels": MultiBinary(4),
         })

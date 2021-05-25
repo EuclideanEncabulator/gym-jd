@@ -2,11 +2,11 @@ import numpy as np
 
 from scipy.spatial.distance import cdist
 class NodeFinder():
-    def __init__(self, boundaries, nodes_to_check=10, max_visible_distance=20, node_threshold=7.5):
+    def __init__(self, boundaries, nodes_to_check=3, visible_nodes=20, visible_frequency=1, node_threshold=7.5):
         self.BOUNDARIES = boundaries
         self.NODES = (boundaries[:, 1] + boundaries[:, 0]) / 2
-        self.MAX_VISIBLE_DISTANCE, self.NODES_TO_CHECK = max_visible_distance ** 2, nodes_to_check // 2
-        self.NODE_THRESHOLD = node_threshold ** 2
+        self.NODES_TO_CHECK, self.VISIBLE_NODES = nodes_to_check, visible_nodes // 2
+        self.VISIBLE_FREQUENCY, self.NODE_THRESHOLD = visible_frequency, node_threshold ** 2
         
         self.reset()
 
@@ -14,13 +14,25 @@ class NodeFinder():
     def get_nearby_boundaries(self, current_position):
         # Consider points around the previously closest node
         lower_bound = max(self.nearest_pair - self.NODES_TO_CHECK,  0)
-        upper_bound = min(self.nearest_pair + self.NODES_TO_CHECK, self.NODES.size - 1)
+        upper_bound = min(self.nearest_pair + self.NODES_TO_CHECK, len(self.NODES) - 1)
 
-        distances = cdist(self.NODES[lower_bound:upper_bound], [current_position], metric="sqeuclidean")
+        # Find the closest node
+        # Using four reference points
+        distances = cdist(self.NODES[[lower_bound, self.nearest_pair, upper_bound, self.target_node]], [current_position], metric="sqeuclidean")
+
+        if np.any(distances):
+            index = distances.argmin()
+
+            if index == 0:
+                self.nearest_pair = lower_bound
+            elif index == 2:
+                self.nearest_pair = upper_bound
+            elif index == 3:
+                self.nearest_pair = self.target_node
 
         # If close enough to current node, count all previous as completed
-        if np.any(distances): self.nearest_pair = lower_bound + distances.argmin()
-        if self.nearest_pair >= self.target_node and distances[self.nearest_pair - lower_bound] <= self.NODE_THRESHOLD:
+        # Accounts for car moving through multiple nodes at once or re-entering track
+        if self.nearest_pair >= self.target_node and distances[index] <= self.NODE_THRESHOLD:
             self.penetrations = self.nearest_pair - self.target_node + 1
             self.target_node += self.penetrations
             self.steps_since_node = 0
@@ -29,9 +41,13 @@ class NodeFinder():
             self.steps_since_node += 1
 
         # Return boundaries padded to the right size
-        boundaries = self.BOUNDARIES[lower_bound:upper_bound][(distances <= self.MAX_VISIBLE_DISTANCE).squeeze()]
+        # Consider points around the previously closest node
+        lower_bound = max(self.nearest_pair - self.VISIBLE_NODES,  0)
+        upper_bound = min(self.nearest_pair + self.VISIBLE_NODES, len(self.NODES) - 1)
+
+        boundaries = self.BOUNDARIES[lower_bound:upper_bound:self.VISIBLE_FREQUENCY]
         return np.concatenate((
-            np.zeros((2 * self.NODES_TO_CHECK - len(boundaries), 2, 3)),
+            np.zeros((2 * self.VISIBLE_NODES // self.VISIBLE_FREQUENCY - len(boundaries), 2, 3)),
             boundaries
         ))
 
