@@ -41,7 +41,7 @@ class JDEnv(Env):
             "velocity": Box(low=-500, high=500, shape=(3,)),
             "direction": Box(low=-1, high=1, shape=(4,)), # quaternion
             "wheel_direction": Box(low=-1, high=1, shape=ONE_SHAPE),
-            "road_boundaries": Box(low=-1000, high=1000, shape=(self.VISIBLE_NODES // self.BOUNDARY_FREQUENENCY, 2, 3)),
+            "road_boundaries": Box(low=-1000, high=1000, shape=(self.VISIBLE_NODES // self.VISIBLE_FREQUENENCY, 2, 3)),
             "grounded": MultiBinary(1),
             "wheels": MultiBinary(4),
         })
