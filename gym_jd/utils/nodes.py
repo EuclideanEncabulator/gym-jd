@@ -45,7 +45,7 @@ class NodeFinder():
         lower_bound = max(self.nearest_pair - self.VISIBLE_NODES,  0)
         upper_bound = min(self.nearest_pair + self.VISIBLE_NODES, len(self.NODES) - 1)
 
-        boundaries = self.BOUNDARIES[lower_bound:upper_bound:self.VISIBLE_FREQUENCY]
+        boundaries = self.BOUNDARIES[lower_bound:upper_bound:self.VISIBLE_FREQUENCY] - current_position
         return np.concatenate((
             np.zeros((2 * self.VISIBLE_NODES // self.VISIBLE_FREQUENCY - len(boundaries), 2, 3)),
             boundaries
