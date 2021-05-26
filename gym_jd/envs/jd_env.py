@@ -8,25 +8,25 @@ from gym_jd.utils.nodes import NodeFinder
 from gym_jd.interface.python.injector import inject
 from gym_jd.interface.python.ipc import Process
 from time import sleep
-from collections import deque
 
 class JDEnv(Env):
     def __init__(self, jd_path, graphics=False, continuous=True):
         ONE_SHAPE = (1,)
-        self.PSEUDO_MAX_SPEED = 300
-        self.NODES_TO_CHECK, self.VISIBLE_NODES = 3, 10
+        self.NODES_TO_CHECK, self.NODE_THRESHOLD = 3, 7.3
+        self.PREVIOUS_VISIBLE_NODES, self.NEXT_VISIBLE_NODES = 2, 4
+        self.PREVIOUS_VISIBLE_FREQUENCY, self.NEXT_VISIBLE_FREQUENCY = 1, 2
         self.CONTINUOUS = continuous
-        self.MAX_IDLE_STEPS = 100
-        self.BOUNDARIES = np.load(pkg_resources.resource_filename("extra", "nodes.npy"))
-        self.VISIBLE_FREQUENENCY = 2
+        self.MAX_IDLE_STEPS = 300
         self.NODES = NodeFinder(
-            self.BOUNDARIES,
             nodes_to_check=self.NODES_TO_CHECK,
-            visible_nodes=self.VISIBLE_NODES,
-            visible_frequency=self.VISIBLE_FREQUENENCY
+            node_threshold=self.NODE_THRESHOLD,
+            previous_visible_nodes=self.PREVIOUS_VISIBLE_NODES,
+            next_visible_nodes=self.NEXT_VISIBLE_NODES,
+            previous_visible_frequency=self.PREVIOUS_VISIBLE_FREQUENCY,
+            next_visible_frequency=self.NEXT_VISIBLE_FREQUENCY
         )
 
-        self.velocities = deque(maxlen=100)
+        num_nodes = self.PREVIOUS_VISIBLE_NODES * self.PREVIOUS_VISIBLE_FREQUENCY + self.NEXT_VISIBLE_NODES * self.NEXT_VISIBLE_FREQUENCY
 
         self.action_space = Dict({
             "steering": Box(low=-1, high=1, shape=ONE_SHAPE),
@@ -41,7 +41,7 @@ class JDEnv(Env):
             "velocity": Box(low=-500, high=500, shape=(3,)),
             "direction": Box(low=-1, high=1, shape=(4,)), # quaternion
             "wheel_direction": Box(low=-1, high=1, shape=ONE_SHAPE),
-            "road_boundaries": Box(low=-1000, high=1000, shape=(self.VISIBLE_NODES // self.VISIBLE_FREQUENENCY, 2, 3)),
+            "road_boundaries": Box(low=-1000, high=1000, shape=(num_nodes, 2, 3)),
             "grounded": MultiBinary(1),
             "wheels": MultiBinary(4),
         })
@@ -51,11 +51,6 @@ class JDEnv(Env):
         dll_path = pkg_resources.resource_filename("extra", "jelly_drift_interface.dll")
         inject(self.process.pid, dll_path.encode("ascii"))
         sleep(0.1)
-
-    def episode_finished(self):
-        max_steps_reached = self.NODES.steps_since_node > self.MAX_IDLE_STEPS
-
-        return max_steps_reached
 
     def reset(self):
         self.perform_action(reset=True)
@@ -78,7 +73,6 @@ class JDEnv(Env):
         observation["wheels"] = np.array([observation["wheel_1"][0], observation["wheel_2"][0], observation["wheel_3"][0], observation["wheel_4"][0]])
         observation["road_boundaries"] = self.NODES.get_nearby_boundaries(observation["position"])
 
-        self.velocities.append(observation["velocity"])
         self.position = observation["position"]
 
         del observation["position"], observation["speed"]
@@ -90,26 +84,16 @@ class JDEnv(Env):
         self.perform_action(**action)
         observation = self.get_observation()
         
-        #velocity_mean = np.mean(np.array(self.velocities))
+        node_rating = self.NODES.penetrations * self.NODES.target_node
+        surface_rating = -sum(observation["wheels"]) * 0.2
 
-        node_rating = self.NODES.penetrations
-        #surface_rating = -sum(observation["wheels"]) * 0.2
-        #throttle_rating = (action["throttle"]) ** (1 / 2) if action["throttle"] > 0 and surface_rating == 0 else 0
-        #velocity_rating = -velocity_mean if velocity_mean < 0 and surface_rating == 0 else velocity_mean * 0.2
+        reward = node_rating + surface_rating
 
-        reward = node_rating
+        info = {"position": self.position} # extra info for debugging
+        done = self.NODES.steps_since_node > self.MAX_IDLE_STEPS
 
-        # print("node rating", node_rating)
-        # print("surface rating", surface_rating)
-        # print("throttle_rating", throttle_rating)
-        # print("velocity rating", velocity_rating)
-        # print("reward", reward)
-        # print()
+        return observation, reward, done, info
 
-        info = {"position": self.position, "road_boundaries": observation["road_boundaries"]} # extra info for debugging
-        return observation, reward, self.episode_finished(), info
-
-    # Display a single game on screen
-    # TODO
+    # Visualisation is all pre-set
     def render(self):
         pass

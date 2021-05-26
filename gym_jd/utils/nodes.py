@@ -1,12 +1,17 @@
+import pkg_resources
+
 import numpy as np
 
 from scipy.spatial.distance import cdist
 class NodeFinder():
-    def __init__(self, boundaries, nodes_to_check=3, visible_nodes=20, visible_frequency=1, node_threshold=7.5):
-        self.BOUNDARIES = boundaries
-        self.NODES = (boundaries[:, 1] + boundaries[:, 0]) / 2
-        self.NODES_TO_CHECK, self.VISIBLE_NODES = nodes_to_check, visible_nodes // 2
-        self.VISIBLE_FREQUENCY, self.NODE_THRESHOLD = visible_frequency, node_threshold ** 2
+    def __init__(self, nodes_to_check=3, previous_visible_nodes=2, next_visible_nodes=4, previous_visible_frequency=1, next_visible_frequency=2, node_threshold=7.5):
+        self.BOUNDARIES = np.load(pkg_resources.resource_filename("extra", "nodes.npy"))
+        self.NODES = (self.BOUNDARIES[:, 1] + self.BOUNDARIES[:, 0]) / 2
+        self.NODES_TO_CHECK, self.NODE_THRESHOLD = nodes_to_check, node_threshold ** 2
+
+        self.PREVIOUS_VISIBLE_NODES, self.NEXT_VISIBLE_NODES = previous_visible_nodes, next_visible_nodes
+        self.PREVIOUS_VISIBLE_FREQUENCY, self.NEXT_VISIBLE_FREQUENCY = previous_visible_frequency, next_visible_frequency
+        self.NUM_NODES = self.PREVIOUS_VISIBLE_NODES * self.PREVIOUS_VISIBLE_FREQUENCY + self.NEXT_VISIBLE_NODES * self.NEXT_VISIBLE_FREQUENCY
         
         self.reset()
 
@@ -42,13 +47,16 @@ class NodeFinder():
 
         # Return boundaries padded to the right size
         # Consider points around the previously closest node
-        lower_bound = max(self.nearest_pair - self.VISIBLE_NODES,  0)
-        upper_bound = min(self.nearest_pair + self.VISIBLE_NODES, len(self.NODES) - 1)
+        lower_bound = max(self.nearest_pair - self.PREVIOUS_VISIBLE_NODES * self.PREVIOUS_VISIBLE_FREQUENCY,  0)
+        upper_bound = min(self.nearest_pair + self.NEXT_VISIBLE_NODES * self.NEXT_VISIBLE_FREQUENCY, len(self.NODES) - 1)
 
-        boundaries = self.BOUNDARIES[lower_bound:upper_bound:self.VISIBLE_FREQUENCY] - current_position
+        lower_boundaries = self.BOUNDARIES[lower_bound:self.nearest_pair:self.PREVIOUS_VISIBLE_FREQUENCY] - current_position
+        upper_boundaries = self.BOUNDARIES[self.nearest_pair:upper_bound:self.NEXT_VISIBLE_FREQUENCY] - current_position
+
         return np.concatenate((
-            np.zeros((2 * self.VISIBLE_NODES // self.VISIBLE_FREQUENCY - len(boundaries), 2, 3)),
-            boundaries
+            np.zeros((self.NUM_NODES - len(lower_boundaries) - len(upper_boundaries), 2, 3)),
+            lower_boundaries,
+            upper_boundaries
         ))
 
     def reset(self):
