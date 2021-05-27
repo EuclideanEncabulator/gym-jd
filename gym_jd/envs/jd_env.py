@@ -7,23 +7,12 @@ from gym_jd.interface.python.managed_process import ManagedProcess
 from time import sleep
 
 class JDEnv(Env):
-    def __init__(self, jd_path, graphics=False, resolution=1080, continuous=True):
-        ONE_SHAPE = (1,)
-        self.NODES_TO_CHECK, self.NODE_THRESHOLD = 3, 7.3
-        self.PREVIOUS_VISIBLE_NODES, self.NEXT_VISIBLE_NODES = 2, 4
-        self.PREVIOUS_VISIBLE_FREQUENCY, self.NEXT_VISIBLE_FREQUENCY = 1, 2
+    def __init__(self, jd_path, nodes, max_idle_steps=300, graphics=False, resolution=1080, continuous=True):
         self.CONTINUOUS = continuous
-        self.MAX_IDLE_STEPS = 300
-        self.NODES = NodeFinder(
-            nodes_to_check=self.NODES_TO_CHECK,
-            node_threshold=self.NODE_THRESHOLD,
-            previous_visible_nodes=self.PREVIOUS_VISIBLE_NODES,
-            next_visible_nodes=self.NEXT_VISIBLE_NODES,
-            previous_visible_frequency=self.PREVIOUS_VISIBLE_FREQUENCY,
-            next_visible_frequency=self.NEXT_VISIBLE_FREQUENCY
-        )
+        self.MAX_IDLE_STEPS = max_idle_steps
+        self.NODES = nodes
 
-        num_nodes = self.PREVIOUS_VISIBLE_NODES * self.PREVIOUS_VISIBLE_FREQUENCY + self.NEXT_VISIBLE_NODES * self.NEXT_VISIBLE_FREQUENCY
+        ONE_SHAPE = (1,)
 
         self.action_space = Dict({
             "steering": Box(low=-1, high=1, shape=ONE_SHAPE),
@@ -38,7 +27,7 @@ class JDEnv(Env):
             "velocity": Box(low=-500, high=500, shape=(3,)),
             "direction": Box(low=-1, high=1, shape=(4,)), # quaternion
             "wheel_direction": Box(low=-1, high=1, shape=ONE_SHAPE),
-            "road_boundaries": Box(low=-1000, high=1000, shape=(num_nodes, 2, 3)),
+            "road_boundaries": Box(low=-1000, high=1000, shape=(self.NODES.NUM_NODES, 2, 3)),
             "grounded": MultiBinary(1),
             "wheels": MultiBinary(4),
         })
