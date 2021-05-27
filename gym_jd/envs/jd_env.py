@@ -1,16 +1,13 @@
-import pkg_resources
-
 import numpy as np
 
 from gym import Env
 from gym.spaces import Dict, Discrete, Box, MultiBinary
 from gym_jd.utils.nodes import NodeFinder
-from gym_jd.interface.python.injector import inject
-from gym_jd.interface.python.ipc import Process
+from gym_jd.interface.python.managed_process import ManagedProcess
 from time import sleep
 
 class JDEnv(Env):
-    def __init__(self, jd_path, graphics=False, continuous=True):
+    def __init__(self, jd_path, graphics=False, resolution=1080, continuous=True):
         ONE_SHAPE = (1,)
         self.NODES_TO_CHECK, self.NODE_THRESHOLD = 3, 7.3
         self.PREVIOUS_VISIBLE_NODES, self.NEXT_VISIBLE_NODES = 2, 4
@@ -46,11 +43,7 @@ class JDEnv(Env):
             "wheels": MultiBinary(4),
         })
 
-        self.process = Process(jd_path, graphics)
-        sleep(5) # TODO: Move to c++, we can tell when unity has loaded
-        dll_path = pkg_resources.resource_filename("extra", "jelly_drift_interface.dll")
-        inject(self.process.pid, dll_path.encode("ascii"))
-        sleep(0.1)
+        self.process = ManagedProcess(jd_path, graphics, resolution)
 
     def reset(self):
         self.perform_action(reset=True)
