@@ -24,6 +24,7 @@ class NodeFinder():
         # Find the closest node
         # Using four reference points
         distances = cdist(self.NODES[[lower_bound, self.nearest_pair, upper_bound, self.target_node]], [current_position], metric="sqeuclidean")
+        self.target_distance = distances[-1][0]
 
         if np.any(distances):
             index = distances.argmin()
@@ -62,3 +63,4 @@ class NodeFinder():
     def reset(self):
         self.nearest_pair, self.target_node = 0, 0
         self.penetrations, self.steps_since_node = 0, 0
+        self.target_distance = 0

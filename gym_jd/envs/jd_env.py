@@ -4,10 +4,10 @@ from gym import Env
 from gym.spaces import Dict, Discrete, Box, MultiBinary
 from gym_jd.utils.nodes import NodeFinder
 from gym_jd.interface.python.managed_process import ManagedProcess
-from time import sleep
+from typing import Callable
 
 class JDEnv(Env):
-    def __init__(self, jd_path, nodes, max_idle_steps=300, graphics=False, resolution=1080, continuous=True):
+    def __init__(self, jd_path, nodes: NodeFinder, reward_func: Callable, max_idle_steps:int=300, graphics: bool=False, resolution: int=1080, continuous: bool=True):
         self.CONTINUOUS = continuous
         self.MAX_IDLE_STEPS = max_idle_steps
         self.NODES = nodes
@@ -33,6 +33,7 @@ class JDEnv(Env):
         })
 
         self.process = ManagedProcess(jd_path, graphics, resolution)
+        self.reward_func = reward_func
 
     def reset(self):
         self.perform_action(reset=True)
@@ -66,10 +67,7 @@ class JDEnv(Env):
         self.perform_action(**action)
         observation = self.get_observation()
         
-        node_rating = self.NODES.penetrations * self.NODES.target_node
-        surface_rating = -sum(observation["wheels"]) * 0.2
-
-        reward = node_rating + surface_rating
+        reward = self.reward_func(nodes=self.NODES, observation=observation)
 
         info = {"position": self.position} # extra info for debugging
         done = self.NODES.steps_since_node > self.MAX_IDLE_STEPS
