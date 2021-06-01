@@ -66,9 +66,9 @@ class NodeFinder():
     def random_position(self, reference_away=1):
         # Random point within range
         index = choice(range(0, len(self.NODES) - reference_away))
+
         current_node, next_node = self.NODES[index], self.NODES[index + reference_away]
         current_boundary, next_boundary = self.BOUNDARIES[index], self.BOUNDARIES[index + reference_away]
-
         perpendicular = np.cross(next_boundary[0] - current_boundary[0], current_boundary[1] - current_boundary[0])
 
         return current_node + perpendicular / norm(perpendicular), next_node - current_node, perpendicular, index

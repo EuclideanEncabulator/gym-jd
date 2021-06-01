@@ -36,7 +36,6 @@ class JDEnv(Env):
         self.reward_func = reward_func
 
     def reset(self):
-        self.steps = 0
         position, lookat, upwards = self.NODES.reset()
         self.perform_action(reset=True, position=position, lookat=lookat, upwards=upwards)
         
