@@ -1,15 +1,15 @@
 import numpy as np
 
 from gym_jd.utils.nodes import NodeFinder
-from gym_jd.utils.sum_functions import SumFuncs
+from gym_jd.utils.apply_functions import ApplyFuncs
 from typing import MutableSequence
 
-class Reward(SumFuncs):
+class Reward(ApplyFuncs):
     def __init__(self, **funcs) -> None:
         get_func = lambda func : globals()[func] if isinstance(func, str) else func
-        funcs = [[get_func(func[0]), func[1]] if isinstance(func, MutableSequence) else get_func(func) for func in funcs.values()]
+        funcs = {name: [get_func(func[0]), func[1]] if isinstance(func, MutableSequence) else get_func(func) for name, func in funcs.items()}
 
-        super().__init__(*funcs)
+        super().__init__(**funcs)
 
 def penetrations(nodes: NodeFinder):
     return nodes.penetrations

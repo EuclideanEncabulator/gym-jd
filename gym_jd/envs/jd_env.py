@@ -80,15 +80,15 @@ class JDEnv(Env):
         self.perform_action(**action)
         observation = self.get_observation()
         
-        reward = self.reward_func(nodes=self.NODES, observation=observation)
+        rewards = self.reward_func(nodes=self.NODES, observation=observation)
 
-        info = {"position": self.position} # extra info for debugging
+        info = {"position": self.position, "rewards": rewards} # extra info for debugging
         done = self.NODES.steps_since_node > self.MAX_IDLE_STEPS
 
         if self.NODES.target_node >= len(self.NODES.NODES):
             self.reset()
 
-        return observation, reward, done, info
+        return observation, sum(rewards.values()), done, info
 
     # Visualisation is all pre-set
     def render(self):
