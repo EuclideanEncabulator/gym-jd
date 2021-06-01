@@ -57,7 +57,6 @@ class JDEnv(Env):
             "steering": steering if self.CONTINUOUS else steering - 1,
             "throttle": throttle if self.CONTINUOUS else throttle - 1,
             "braking": 0,# int(braking >= 0.5)
-            "force_move": reset,
             "position": position,
             "lookat": lookat,
             "upwards": upwards

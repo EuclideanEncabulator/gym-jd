@@ -71,7 +71,6 @@ class NodeFinder():
 
         perpendicular = np.cross(next_boundary[0] - current_boundary[0], current_boundary[1] - current_boundary[0])
 
-        # Get angles
         return current_node + perpendicular / norm(perpendicular), next_node - current_node, perpendicular, index
 
     def reset(self):
