@@ -3,6 +3,9 @@ import pkg_resources
 import numpy as np
 
 from scipy.spatial.distance import cdist
+from numpy.random import choice
+from numpy.linalg import norm
+
 class NodeFinder():
     def __init__(self, nodes_to_check=3, previous_visible_nodes=2, next_visible_nodes=4, previous_visible_frequency=1, next_visible_frequency=2, node_threshold=7.5):
         self.BOUNDARIES = np.load(pkg_resources.resource_filename("extra", "nodes.npy"))
@@ -59,6 +62,18 @@ class NodeFinder():
             lower_boundaries,
             upper_boundaries
         ))
+
+    def random_position(self, reference_away=1):
+        # Random point within range
+        position = choice(range(0, len(self.NODES) - reference_away))
+        centre_node = self.NODES[position]
+
+        # perpendicular = np.cross(*(centre_node - self.BOUNDARIES[position]))
+        perpendicular = np.cross(centre_node - self.NODES[position], centre_node - self.NODES[position + reference_away])
+        # (centre_node + self.NODES[position + reference_away]) / 2
+
+        # Get angles
+        return centre_node, self.NODES[position + reference_away], perpendicular / norm(perpendicular)
 
     def reset(self):
         self.nearest_pair, self.target_node = 0, 0

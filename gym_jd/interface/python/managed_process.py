@@ -12,7 +12,7 @@ class ManagedProcess(Process):
 
     def start(self):
         super().__init__(self.path, self.graphics, self.resolution)
-        sleep(10) # TODO: Move to c++, we can tell when unity has loaded
+        sleep(15) # TODO: Move to c++, we can tell when unity has loaded
 
         dll_path = pkg_resources.resource_filename("extra", "jelly_drift_interface.dll")
         inject(self.pid, dll_path.encode("ascii"))

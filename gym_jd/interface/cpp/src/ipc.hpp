@@ -12,6 +12,10 @@ namespace ipc
 		bool reset;
 		float steering, throttle;
 		bool braking;
+		bool force_move;
+		unity::vector3 position;
+		unity::vector3 lookat;
+		unity::vector3 upwards;
 	};
 
 	struct message_game

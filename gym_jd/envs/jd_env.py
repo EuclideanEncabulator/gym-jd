@@ -36,17 +36,27 @@ class JDEnv(Env):
         self.reward_func = reward_func
 
     def reset(self):
+        self.steps = 0
         self.perform_action(reset=True)
         self.NODES.reset()
         
         return self.get_observation(wait=False)
 
     def perform_action(self, wait=True, reset: bool=False, steering: float=0., throttle: float=1., braking: int=0):
+        self.steps += 1
+        force_move = self.steps % 200 == 0 or reset
+        # reset = force_move # for debugging
+        position, lookat, upwards = self.NODES.random_position() if force_move else [(0, 0, 0), (0, 0, 0), (0, 0, 0)]
+
         self.process.write({
             "reset": reset,
             "steering": steering if self.CONTINUOUS else steering - 1,
             "throttle": throttle if self.CONTINUOUS else throttle - 1,
-            "braking": 0# int(braking >= 0.5)
+            "braking": 0,# int(braking >= 0.5)
+            "force_move": force_move,
+            "position": position,
+            "lookat": lookat,
+            "upwards": upwards
         }, wait)
 
     def get_observation(self, wait=True):

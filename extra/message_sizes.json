@@ -12,9 +12,13 @@
     "wheel_4": ["uint8", 1]
   },
   {
-    "reset": "?",
-    "steering": "f",
-    "throttle": "f",
-    "braking": "?"
+    "reset": ["?", 1],
+    "steering": ["f", 1],
+    "throttle": ["f", 1],
+    "braking": ["?", 1],
+    "force_move": ["?", 1],
+    "position": ["f", 3],
+    "lookat": ["f", 3],
+    "upwards": ["f", 3]
   }
 ]

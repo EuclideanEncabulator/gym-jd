@@ -36,13 +36,31 @@ void start()
 	{
 		WaitForSingleObject(ipc::python_mutex, INFINITE);
 
+		unity::vector3 zero_vector = { 0, 0, 0 };
+
+		if (ipc::python_buffer->force_move) {
+			car->velocity = zero_vector;
+
+			objects::set_rotation(car->rigid_body, objects::get_lookat_rotation(ipc::python_buffer->lookat, ipc::python_buffer->upwards));
+			objects::set_position(car->rigid_body, ipc::python_buffer->position);
+		}
+
 		if (ipc::python_buffer->reset)
 		{
 			game_state->reset = true;
 			std::this_thread::sleep_for(100ms);
 			auto game_controller = objects::find_active_object<jelly_drift::game_controller>("GameController");
 			car = reinterpret_cast<jelly_drift::car*>(game_controller->current_car->mono_object->game_object->real_object->object);
+
 			ReleaseMutex(ipc::python_mutex);
+
+			if (ipc::python_buffer->force_move) {
+				car->velocity = zero_vector;
+
+				objects::set_rotation(car->rigid_body, objects::get_lookat_rotation(ipc::python_buffer->lookat, ipc::python_buffer->upwards));
+				objects::set_position(car->rigid_body, ipc::python_buffer->position);
+			}
+
 			continue;
 		}
 
