@@ -65,18 +65,20 @@ class NodeFinder():
 
     def random_position(self, reference_away=1):
         # Random point within range
-        position = choice(range(0, len(self.NODES) - reference_away))
-        current_node = self.NODES[position]
-        next_node = self.NODES[position + reference_away]
-        current_boundary = self.BOUNDARIES[position]
-        next_boundary = self.BOUNDARIES[position + reference_away]
+        index = choice(range(0, len(self.NODES) - reference_away))
+        current_node, next_node = self.NODES[index], self.NODES[index + reference_away]
+        current_boundary, next_boundary = self.BOUNDARIES[index], self.BOUNDARIES[index + reference_away]
 
         perpendicular = np.cross(next_boundary[0] - current_boundary[0], current_boundary[1] - current_boundary[0])
 
         # Get angles
-        return current_node + perpendicular / norm(perpendicular), next_node - current_node, perpendicular
+        return current_node + perpendicular / norm(perpendicular), next_node - current_node, perpendicular, index
 
     def reset(self):
-        self.nearest_pair, self.target_node = 0, 0
+        position, lookat, upwards, index = self.random_position()
+
+        self.nearest_pair, self.target_node = index, index + 1
         self.penetrations, self.steps_since_node = 0, 0
         self.target_distance = 0
+
+        return position, lookat, upwards

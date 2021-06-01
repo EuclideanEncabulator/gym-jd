@@ -37,23 +37,27 @@ class JDEnv(Env):
 
     def reset(self):
         self.steps = 0
-        self.perform_action(reset=True)
-        self.NODES.reset()
+        position, lookat, upwards = self.NODES.reset()
+        self.perform_action(reset=True, position=position, lookat=lookat, upwards=upwards)
         
         return self.get_observation(wait=False)
 
-    def perform_action(self, wait=True, reset: bool=False, steering: float=0., throttle: float=1., braking: int=0):
-        self.steps += 1
-        force_move = self.steps % 200 == 0 or reset
-        # reset = force_move # for debugging
-        position, lookat, upwards = self.NODES.random_position() if force_move else [(0, 0, 0), (0, 0, 0), (0, 0, 0)]
-
+    def perform_action(self,
+        wait=True,
+        reset: bool=False,
+        steering: float=0.,
+        throttle: float=1.,
+        braking: int=0,
+        position=(0, 0, 0),
+        lookat=(0, 0, 0),
+        upwards=(0, 0, 0)
+    ):
         self.process.write({
             "reset": reset,
             "steering": steering if self.CONTINUOUS else steering - 1,
             "throttle": throttle if self.CONTINUOUS else throttle - 1,
             "braking": 0,# int(braking >= 0.5)
-            "force_move": force_move,
+            "force_move": reset,
             "position": position,
             "lookat": lookat,
             "upwards": upwards
@@ -81,6 +85,9 @@ class JDEnv(Env):
 
         info = {"position": self.position} # extra info for debugging
         done = self.NODES.steps_since_node > self.MAX_IDLE_STEPS
+
+        if self.NODES.target_node >= len(self.NODES.NODES):
+            self.reset()
 
         return observation, reward, done, info
 
