@@ -24,6 +24,9 @@ namespace objects
 
 	unity::vector3 get_position(uintptr_t transform);
 	unity::quaternion get_rotation(uintptr_t transform);
+	unity::quaternion get_lookat_rotation(unity::vector3 forward, unity::vector3 upwards);
+	void set_position(uintptr_t rigidbody, unity::vector3 position);
+	void set_rotation(uintptr_t rigidbody, unity::quaternion rotation);
 
 	bool set_time_scale(float time_scale);
 }

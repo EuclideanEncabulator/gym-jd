@@ -76,6 +76,28 @@ unity::quaternion objects::get_rotation(uintptr_t transform)
     return rotation;
 }
 
+unity::quaternion objects::get_lookat_rotation(unity::vector3 forward, unity::vector3 upwards)
+{
+    unity::quaternion rotation;
+
+    static const auto get_rotation_lookat_Injected = reinterpret_cast<uint64_t(__fastcall*)(unity::vector3&, unity::vector3&, unity::quaternion&)>(unityplayer_base + offsets::lookup_rotation);
+    get_rotation_lookat_Injected(forward, upwards, rotation);
+
+    return rotation;
+}
+
+void objects::set_position(uintptr_t rigidbody, unity::vector3 position)
+{
+    static const auto set_position_Injected = reinterpret_cast<uint64_t(__fastcall*)(uintptr_t, unity::vector3&)>(unityplayer_base + offsets::set_position_Injected);
+    set_position_Injected(rigidbody, position);
+}
+
+void objects::set_rotation(uintptr_t rigidbody, unity::quaternion rotation)
+{
+    static const auto set_rotation_Injected = reinterpret_cast<uint64_t(__fastcall*)(uintptr_t, unity::quaternion&)>(unityplayer_base + offsets::set_rotation_Injected);
+    set_rotation_Injected(rigidbody, rotation);
+}
+
 bool objects::set_time_scale(float time_scale)
 {
     static const auto set_time_scale = reinterpret_cast<uint64_t(__fastcall*)(float time_scale)>(unityplayer_base + offsets::set_time_scale);
