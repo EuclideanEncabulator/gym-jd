@@ -9,8 +9,8 @@ project "jelly_drift_interface"
     characterset "MBCS"
 
     files {
-        "src/**.hpp",
-        "src/**.cpp",
+        "gym_jd/interface/cpp/**.hpp",
+        "gym_jd/interface/cpp/**.cpp",
     }
 
     cppdialect "c++latest"

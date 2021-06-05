@@ -2,5 +2,8 @@ __pycache__
 .vscode
 **egg**
 .vs/**
-.gitignore
+**.sln
+**.vcxproj
 outputs/**
+bin/**
+obj/**
